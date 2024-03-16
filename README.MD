@@ -1,0 +1,3 @@
+# Tic Tac Toe Game
+
+This Tic Tac Toe game is built using JavaFX, a versatile software platform renowned for its capability to create desktop applications and rich web applications that are compatible with a diverse range of devices. With JavaFX, this game delivers a seamless and interactive gaming experience, providing players with intuitive controls and engaging visuals. Whether you're a beginner or a seasoned player, enjoy the timeless fun of Tic Tac Toe with the power and flexibility of JavaFX.
