@@ -21,21 +21,21 @@ public class TicTacToe extends Application {
 
     @Override
     public void start(Stage stage) {
-// In this function, you'll show the created GUI and set the scene.
+
         this.createGUI();
         Scene scene = new Scene(borderPane, 550, 650);
         stage.setTitle("Tic Tac Toe");
         stage.setScene(scene);
         stage.show();
     }
-// Task 3: Add your code in this function
+
     private void createGUI() {
-        Font font = Font.font("Roboto", FontWeight.BOLD, 30);
+        Font font = Font.font("Arial", FontWeight.BOLD, 40);
         title.setFont(font);
 
         borderPane.setTop(title);
         BorderPane.setAlignment(title, Pos.CENTER);
-        borderPane.setPadding(new Insets(20, 20, 20, 20));
+        borderPane.setPadding(new Insets(25, 25, 25, 25));
     }
 
     public static void main(String[] args) {
