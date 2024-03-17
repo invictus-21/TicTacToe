@@ -16,6 +16,8 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 
 
@@ -41,6 +43,17 @@ public class TicTacToe extends Application {
             {2, 4, 6}
     };
     private final Font font = Font.font("Arial", FontWeight.BOLD, 40);
+    private ArrayList<Integer> rows = new ArrayList<>(3);
+    private ArrayList<Integer> cols = new ArrayList<>(3);
+    private int diagonal = 0;
+    private int antidiagonal = 0;
+    private int player_moves = 0;
+    private int ai_moves = 0;
+
+    
+    public static void main(String[] args) {
+        launch(args);
+    }
 
 
     @Override
@@ -78,118 +91,6 @@ public class TicTacToe extends Application {
             }
         }
         borderPane.setCenter(gridPane);
-    }
-
-    public boolean isWinner(int[] pos) {
-        if (gameStates[pos[0]] == -1) {
-            return false;
-        }
-        return (gameStates[pos[0]] == gameStates[pos[1]])
-                && (gameStates[pos[0]] == gameStates[pos[2]]);
-    }
-
-    public boolean isBoardFull() {
-        for (int state : gameStates) {
-            if (state == -1) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public void checkForWinner() {
-        if (gameOver)
-            return;
-        for (int i = 0; i < 8; i++) {
-            if (isWinner(winningPositions[i])) {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("Game Over");
-                alert.setContentText("Player " + players[activePlayer] + " won");
-                alert.show();
-                gameOver = true;
-                restartButton.setDisable(false);
-                break;
-            }
-        }
-        if (!gameOver && isBoardFull()) {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Game Over");
-            alert.setContentText("It's a draw!");
-            alert.show();
-            gameOver = true;
-            restartButton.setDisable(false);
-        }
-    }
-
-    public int minimaxWithAlphaBeta(int depth, int player, int alpha, int beta) {
-        if (isWinner(winningPositions[0])) return -1;
-        if (isWinner(winningPositions[1])) return 1;
-        if (isWinner(winningPositions[2])) return -1;
-        if (isWinner(winningPositions[3])) return 1;
-        if (isWinner(winningPositions[4])) return -1;
-        if (isWinner(winningPositions[5])) return 1;
-        if (isWinner(winningPositions[6])) return -1;
-        if (isWinner(winningPositions[7])) return 1;
-        if (isBoardFull()) return 0;
-
-        if (player == 0) {
-            int bestScore = Integer.MIN_VALUE;
-            for (int i = 0; i < 9; i++) {
-                if (gameStates[i] == -1) {
-                    gameStates[i] = player;
-                    int score = minimaxWithAlphaBeta(depth + 1, 1 - player, alpha, beta);
-                    gameStates[i] = -1;
-                    bestScore = Math.max(score, bestScore);
-                    alpha = Math.max(alpha, bestScore);
-                    if (alpha >= beta)
-                        break;
-                }
-            }
-            return bestScore;
-        } else {
-            int bestScore = Integer.MAX_VALUE;
-            for (int i = 0; i < 9; i++) {
-                if (gameStates[i] == -1) {
-                    gameStates[i] = player;
-                    int score = minimaxWithAlphaBeta(depth + 1, 1 - player, alpha, beta);
-                    gameStates[i] = -1;
-                    bestScore = Math.min(score, bestScore);
-                    beta = Math.min(beta, bestScore);
-                    if (beta <= alpha)
-                        break;
-                }
-            }
-            return bestScore;
-        }
-    }
-
-    public void makeMoveWithAI() {
-        int bestMove = -1;
-        int bestScore = Integer.MIN_VALUE;
-        int alpha = Integer.MIN_VALUE;
-        int beta = Integer.MAX_VALUE;
-
-        for (int i = 0; i < 9; i++) {
-            if (gameStates[i] == -1) {
-                gameStates[i] = activePlayer;
-                int score = minimaxWithAlphaBeta(0, 1 - activePlayer, alpha, beta);
-                gameStates[i] = -1;
-
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestMove = i;
-                }
-            }
-        }
-
-        if (bestMove != -1) {
-            btns[bestMove].setGraphic(new ImageView(
-                    new Image("file:src/main/resources/assets/cross.png", 100, 100, false, false)
-            ));
-            gameStates[bestMove] = activePlayer;
-            checkForWinner();
-            activePlayer = 0;
-        }
     }
 
     public void handleEvent() {
@@ -236,7 +137,115 @@ public class TicTacToe extends Application {
         }
     }
 
-    public static void main(String[] args) {
-        launch(args);
+    public boolean isWinner(int[] pos) {
+        if (gameStates[pos[0]] == -1) {
+            return false;
+        }
+        return (gameStates[pos[0]] == gameStates[pos[1]])
+                && (gameStates[pos[0]] == gameStates[pos[2]]);
+    }
+
+    public boolean isBoardFull() {
+        for (int state : gameStates) {
+            if (state == -1) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void checkForWinner() {
+        if (gameOver)
+            return;
+        for (int i = 0; i < 8; i++) {
+            if (isWinner(winningPositions[i])) {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Game Over");
+                alert.setContentText("Player " + players[activePlayer] + " won");
+                alert.show();
+                gameOver = true;
+                restartButton.setDisable(false);
+                break;
+            }
+        }
+        if (!gameOver && isBoardFull()) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Game Over");
+            alert.setContentText("It's a draw!");
+            alert.show();
+            gameOver = true;
+            restartButton.setDisable(false);
+        }
+    }
+
+    public void makeMoveWithAI() {
+        int bestMove = -1;
+        int bestScore = Integer.MIN_VALUE;
+        int alpha = Integer.MIN_VALUE;
+        int beta = Integer.MAX_VALUE;
+
+        for (int i = 0; i < 9; i++) {
+            if (gameStates[i] == -1) {
+                gameStates[i] = activePlayer;
+                int score = minimaxWithAlphaBeta(0, 1 - activePlayer, alpha, beta);
+                gameStates[i] = -1;
+
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMove = i;
+                }
+            }
+        }
+
+        if (bestMove != -1) {
+            btns[bestMove].setGraphic(new ImageView(
+                    new Image("file:src/main/resources/assets/cross.png", 100, 100, false, false)
+            ));
+            gameStates[bestMove] = activePlayer;
+            checkForWinner();
+            activePlayer = 0;
+        }
+    }
+
+    public int minimaxWithAlphaBeta(int depth, int player, int alpha, int beta) {
+        if (isWinner(winningPositions[0])) return -1;
+        if (isWinner(winningPositions[1])) return 1;
+        if (isWinner(winningPositions[2])) return -1;
+        if (isWinner(winningPositions[3])) return 1;
+        if (isWinner(winningPositions[4])) return -1;
+        if (isWinner(winningPositions[5])) return 1;
+        if (isWinner(winningPositions[6])) return -1;
+        if (isWinner(winningPositions[7])) return 1;
+        if (isBoardFull()) return 0;
+
+        if (player == 0) {
+            int bestScore = Integer.MIN_VALUE;
+            for (int i = 0; i < 9; i++) {
+                if (gameStates[i] == -1) {
+                    gameStates[i] = player;
+                    int score = minimaxWithAlphaBeta(depth + 1, 1 - player, alpha, beta);
+                    gameStates[i] = -1;
+                    bestScore = Math.max(score, bestScore);
+                    alpha = Math.max(alpha, bestScore);
+                    if (alpha >= beta)
+                        break;
+                }
+            }
+            return bestScore;
+        } else {
+            int bestScore = Integer.MAX_VALUE;
+            for (int i = 0; i < 9; i++) {
+                if (gameStates[i] == -1) {
+                    gameStates[i] = player;
+                    int score = minimaxWithAlphaBeta(depth + 1, 1 - player, alpha, beta);
+                    gameStates[i] = -1;
+                    bestScore = Math.min(score, bestScore);
+                    beta = Math.min(beta, bestScore);
+                    if (beta <= alpha)
+                        break;
+                }
+            }
+            return bestScore;
+        }
     }
 }
