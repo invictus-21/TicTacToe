@@ -37,19 +37,9 @@ public class TicTacToe extends Application {
         put(1, "X");
     }};
     private final int[] gameStates = new int[9];
-    private final int[][] winningPositions = {
-            {0, 1, 2},
-            {3, 4, 5},
-            {6, 7, 8},
-            {0, 3, 6},
-            {1, 4, 7},
-            {2, 5, 8},
-            {0, 4, 8},
-            {2, 4, 6}
-    };
     private final Font font = Font.font("Arial", FontWeight.BOLD, 40);
-    private ArrayList<Integer> rows = new ArrayList<Integer>(Arrays.asList(0, 0, 0));
-    private ArrayList<Integer> cols = new ArrayList<Integer>(Arrays.asList(0, 0, 0));
+    private List<Integer> rows = new ArrayList<Integer>(Arrays.asList(0, 0, 0));
+    private List<Integer> cols = new ArrayList<Integer>(Arrays.asList(0, 0, 0));
     private int diagonal = 0;
     private int antidiagonal = 0;
     private int total_moves = 0;
@@ -116,26 +106,19 @@ public class TicTacToe extends Application {
         for (Button button : btns) {
             button.setOnAction(actionEvent -> {
                 Button btn = (Button) actionEvent.getSource();
-                int idS = Integer.parseInt(btn.getId());
+                int position = Integer.parseInt(btn.getId());
                 if (gameOver) {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
                     alert.setTitle("Game Over");
                     alert.setContentText("Game Over! Try to restart the game");
                     alert.show();
                 } else {
-                    if (gameStates[idS] == 0) {
+                    if (gameStates[position] == 0) {
                         btn.setGraphic(new ImageView(
                                 new Image("file:src/main/resources/assets/circle.png", 100, 100, false, false)
                         ));
-                        gameStates[idS] = activePlayer;
-                        int row = idS / 3, col = idS % 3;
-                        rows.set(row, rows.get(row)-1);
-                        cols.set(col, cols.get(col)-1);
-                        if (row == col)
-                            diagonal -= 1;
-                        if (row + col == 2)
-                            antidiagonal -= 1;
-                        total_moves += 1;
+                        gameStates[position] = activePlayer;
+                        storeMove(position, activePlayer);
                         checkForWinner();
                         activePlayer = 1;
                         if (!gameOver) {
@@ -154,14 +137,27 @@ public class TicTacToe extends Application {
         }
     }
 
-    public boolean isWinner() {
+    public void storeMove(int position, int activePlayer) {
+        int row = position / 3, col = position % 3;
+        rows.set(row, rows.get(row)+activePlayer);
+        cols.set(col, cols.get(col)+activePlayer);
+        if (row == col)
+            diagonal += activePlayer;
+        if (row + col == 2)
+            antidiagonal += activePlayer;
+        total_moves += 1;
+
+    }
+
+    public boolean isWinner(int activePlayer) {
         for (int row : rows)
-            if (Math.abs(row) == rows.size())
+            if (row * activePlayer == rows.size())
                 return true;
         for (int col : cols)
-            if (Math.abs(col) == cols.size())
+            if (col * activePlayer == cols.size())
                 return true;
-        return Math.abs(diagonal) == rows.size() || Math.abs(antidiagonal) == rows.size();
+        return diagonal * activePlayer == rows.size() ||
+        antidiagonal * activePlayer == rows.size();
     }
 
     public boolean isBoardFull() {
@@ -171,7 +167,7 @@ public class TicTacToe extends Application {
     public void checkForWinner() {
         if (gameOver)
             return;
-        if (isWinner()) {
+        if (isWinner(activePlayer) || isWinner(activePlayer*-1)) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Game Over");
             alert.setContentText("Player " + players.get(activePlayer) + " won");
@@ -213,28 +209,14 @@ public class TicTacToe extends Application {
                     new Image("file:src/main/resources/assets/cross.png", 100, 100, false, false)
             ));
             gameStates[bestMove] = activePlayer;
-            int row = bestMove / 3, col = bestMove % 3;
-            rows.set(row, rows.get(row)+1);
-            cols.set(col, cols.get(col)+1);
-            if (row == col)
-                diagonal += 1;
-            if (row + col == 2)
-                antidiagonal += 1;
-            total_moves += 1;
+            storeMove(bestMove, activePlayer);
             checkForWinner();
             activePlayer = -1;
         }
     }
 
     public int minimaxWithAlphaBeta(int depth, int player, int alpha, int beta) {
-        if (Math.abs(rows.get(0)) == rows.size()) return -1;
-        if (Math.abs(rows.get(1)) == rows.size()) return 1;
-        if (Math.abs(rows.get(2)) == rows.size()) return -1;
-        if (Math.abs(cols.get(0)) == rows.size()) return 1;
-        if (Math.abs(cols.get(1)) == rows.size()) return -1;
-        if (Math.abs(cols.get(2)) == rows.size()) return 1;
-        if (Math.abs(diagonal) == rows.size()) return -1;
-        if (Math.abs(antidiagonal) == rows.size()) return 1;
+        if (isWinner(player)) return player;
         if (isBoardFull()) return 0;
 
         if (player == -1) {
