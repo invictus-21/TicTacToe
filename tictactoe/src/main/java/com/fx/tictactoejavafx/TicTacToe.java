@@ -120,7 +120,7 @@ public class TicTacToe extends Application {
                         storeMove(position, USER);
                         checkForWinner();
                         if (!gameOver) {
-                            PauseTransition pause = new PauseTransition(Duration.seconds(1));
+                            PauseTransition pause = new PauseTransition(Duration.seconds(0.5));
                             pause.setOnFinished(e -> makeMoveWithAI());
                             pause.play();
                         }
@@ -241,8 +241,8 @@ public class TicTacToe extends Application {
                     gameStates[i] = 0;
                     bestScore = Math.max(score, bestScore);
                     alpha = Math.max(alpha, bestScore);
-                    //if (alpha >= beta)
-                      //  break;
+                    if (alpha >= beta)
+                        break;
                 }
             }
             return bestScore;
@@ -257,8 +257,8 @@ public class TicTacToe extends Application {
                     gameStates[i] = 0;
                     bestScore = Math.min(score, bestScore);
                     beta = Math.min(beta, bestScore);
-                    //if (beta <= alpha)
-                      //  break;
+                    if (beta <= alpha)
+                        break;
                 }
             }
             return bestScore;
