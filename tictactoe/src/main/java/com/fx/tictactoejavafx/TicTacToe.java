@@ -232,8 +232,8 @@ public class TicTacToe extends Application {
     }
 
     public int minimaxWithAlphaBeta(int depth, int player, int alpha, int beta) {
-        if (isWinner(USER) > 0) return isWinner(USER);
-        if (isWinner(AI) > 0) return isWinner(AI) * -1;
+        if (isWinner(USER) > 0) return isWinner(USER) + depth;
+        if (isWinner(AI) > 0) return isWinner(AI) * -1 - depth;
         if (isBoardFull()) return 0;
 
         if (player == USER) {
