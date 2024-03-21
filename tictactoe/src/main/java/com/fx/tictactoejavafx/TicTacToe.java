@@ -31,7 +31,6 @@ public class TicTacToe extends Application {
     private final Button[] btns = new Button[9];
     private final Button restartButton = new Button("Restart");
     private boolean gameOver = false;
-    private int activePlayer = -1;
     private final HashMap<Integer, String> players = new HashMap<Integer, String>() {{
         put(-1, "O");
         put(1, "X");
@@ -43,6 +42,8 @@ public class TicTacToe extends Application {
     private int diagonal = 0;
     private int antidiagonal = 0;
     private int total_moves = 0;
+    private final int AI = 1;
+    private final int USER = -1;
 
     
     public static void main(String[] args) {
@@ -90,7 +91,6 @@ public class TicTacToe extends Application {
     public void handleEvent() {
         restartButton.setOnAction(actionEvent -> {
             gameOver = false;
-            activePlayer = -1;
             for (Button button : btns) {
                 button.setGraphic(null);
             }
@@ -117,10 +117,9 @@ public class TicTacToe extends Application {
                         btn.setGraphic(new ImageView(
                                 new Image("file:src/main/resources/assets/circle.png", 100, 100, false, false)
                         ));
-                        gameStates[position] = activePlayer;
-                        storeMove(position, activePlayer);
+                        gameStates[position] = USER;
+                        storeMove(position, USER);
                         checkForWinner();
-                        activePlayer = 1;
                         if (!gameOver) {
                             PauseTransition pause = new PauseTransition(Duration.seconds(0.5));
                             pause.setOnFinished(e -> makeMoveWithAI());
@@ -129,7 +128,7 @@ public class TicTacToe extends Application {
                     } else {
                         Alert alert = new Alert(Alert.AlertType.ERROR);
                         alert.setTitle("Notification");
-                        alert.setContentText("Player " + players.get(activePlayer) + " has already marked this place");
+                        alert.setContentText("This place has already been marked");
                         alert.show();
                     }
                 }
@@ -149,15 +148,30 @@ public class TicTacToe extends Application {
 
     }
 
-    public boolean isWinner(int activePlayer) {
+    public void removeMove(int position, int activePlayer) {
+        int row = position / 3, col = position % 3;
+        rows.set(row, rows.get(row)-activePlayer);
+        cols.set(col, cols.get(col)-activePlayer);
+        if (row == col)
+            diagonal -= activePlayer;
+        if (row + col == 2)
+            antidiagonal -= activePlayer;
+        total_moves -= 1;
+
+    }
+
+    public int isWinner(int player) {
         for (int row : rows)
-            if (row * activePlayer == rows.size())
-                return true;
+            if (row * player == rows.size())
+                return 10;
         for (int col : cols)
-            if (col * activePlayer == cols.size())
-                return true;
-        return diagonal * activePlayer == rows.size() ||
-        antidiagonal * activePlayer == rows.size();
+            if (col * player == cols.size())
+                return 10;
+        if (diagonal * player == rows.size() ||
+        antidiagonal * player == rows.size())
+            return 10;
+        else
+            return 0;
     }
 
     public boolean isBoardFull() {
@@ -167,10 +181,11 @@ public class TicTacToe extends Application {
     public void checkForWinner() {
         if (gameOver)
             return;
-        if (isWinner(activePlayer) || isWinner(activePlayer*-1)) {
+        if (isWinner(USER) > 0 || isWinner(AI) > 0 ) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Game Over");
-            alert.setContentText("Player " + players.get(activePlayer) + " won");
+            int winner = isWinner(USER) > 0 ? USER:AI;
+            alert.setContentText("Player " + players.get(winner) + " won");
             alert.show();
             gameOver = true;
             restartButton.setDisable(false);
@@ -187,17 +202,19 @@ public class TicTacToe extends Application {
 
     public void makeMoveWithAI() {
         int bestMove = -1;
-        int bestScore = Integer.MIN_VALUE;
+        int bestScore = Integer.MAX_VALUE;
         int alpha = Integer.MIN_VALUE;
         int beta = Integer.MAX_VALUE;
 
         for (int i = 0; i < 9; i++) {
             if (gameStates[i] == 0) {
-                gameStates[i] = activePlayer;
-                int score = minimaxWithAlphaBeta(0, -1 * activePlayer, alpha, beta);
+                gameStates[i] = AI;
+                storeMove(i, AI);
+                int score = minimaxWithAlphaBeta(0, USER, alpha, beta);
+                removeMove(i, AI);
                 gameStates[i] = 0;
 
-                if (score > bestScore) {
+                if (score < bestScore) {
                     bestScore = score;
                     bestMove = i;
                 }
@@ -208,28 +225,30 @@ public class TicTacToe extends Application {
             btns[bestMove].setGraphic(new ImageView(
                     new Image("file:src/main/resources/assets/cross.png", 100, 100, false, false)
             ));
-            gameStates[bestMove] = activePlayer;
-            storeMove(bestMove, activePlayer);
+            gameStates[bestMove] = AI;
+            storeMove(bestMove, AI);
             checkForWinner();
-            activePlayer = -1;
         }
     }
 
     public int minimaxWithAlphaBeta(int depth, int player, int alpha, int beta) {
-        if (isWinner(player)) return player;
+        if (isWinner(USER) > 0) return isWinner(USER);
+        if (isWinner(AI) > 0) return isWinner(AI) * -1;
         if (isBoardFull()) return 0;
 
-        if (player == -1) {
+        if (player == USER) {
             int bestScore = Integer.MIN_VALUE;
             for (int i = 0; i < 9; i++) {
                 if (gameStates[i] == 0) {
-                    gameStates[i] = player;
-                    int score = minimaxWithAlphaBeta(depth + 1, -1 * player, alpha, beta);
+                    gameStates[i] = USER;
+                    storeMove(i, USER);
+                    int score = minimaxWithAlphaBeta(depth + 1, AI, alpha, beta);
+                    removeMove(i, USER);
                     gameStates[i] = 0;
                     bestScore = Math.max(score, bestScore);
                     alpha = Math.max(alpha, bestScore);
-                    if (alpha >= beta)
-                        break;
+                    //if (alpha >= beta)
+                      //  break;
                 }
             }
             return bestScore;
@@ -237,13 +256,15 @@ public class TicTacToe extends Application {
             int bestScore = Integer.MAX_VALUE;
             for (int i = 0; i < 9; i++) {
                 if (gameStates[i] == 0) {
-                    gameStates[i] = player;
-                    int score = minimaxWithAlphaBeta(depth + 1, 1 - player, alpha, beta);
+                    gameStates[i] = AI;
+                    storeMove(i, AI);
+                    int score = minimaxWithAlphaBeta(depth + 1, USER, alpha, beta);
+                    removeMove(i, AI);
                     gameStates[i] = 0;
                     bestScore = Math.min(score, bestScore);
                     beta = Math.min(beta, bestScore);
-                    if (beta <= alpha)
-                        break;
+                    //if (beta <= alpha)
+                      //  break;
                 }
             }
             return bestScore;
