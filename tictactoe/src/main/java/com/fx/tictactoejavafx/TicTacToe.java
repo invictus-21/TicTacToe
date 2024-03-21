@@ -31,9 +31,11 @@ public class TicTacToe extends Application {
     private final Button[] btns = new Button[9];
     private final Button restartButton = new Button("Restart");
     private boolean gameOver = false;
+    private final int AI = -1;
+    private final int USER = 1;
     private final HashMap<Integer, String> players = new HashMap<Integer, String>() {{
-        put(-1, "O");
-        put(1, "X");
+        put(USER, "O");
+        put(AI, "X");
     }};
     private final int[] gameStates = new int[9];
     private final Font font = Font.font("Arial", FontWeight.BOLD, 40);
@@ -42,10 +44,7 @@ public class TicTacToe extends Application {
     private int diagonal = 0;
     private int antidiagonal = 0;
     private int total_moves = 0;
-    private final int AI = 1;
-    private final int USER = -1;
 
-    
     public static void main(String[] args) {
         launch(args);
     }
@@ -70,7 +69,7 @@ public class TicTacToe extends Application {
         borderPane.setBottom(restartButton);
         BorderPane.setAlignment(title, Pos.CENTER);
         BorderPane.setAlignment(restartButton, Pos.CENTER);
-        borderPane.setPadding(new Insets(25, 25, 25, 25));
+        borderPane.setPadding(new Insets(15, 15, 15, 15));
 
         int label = 0;
         for (int i = 0; i < 3; i++) {
@@ -121,7 +120,7 @@ public class TicTacToe extends Application {
                         storeMove(position, USER);
                         checkForWinner();
                         if (!gameOver) {
-                            PauseTransition pause = new PauseTransition(Duration.seconds(0.5));
+                            PauseTransition pause = new PauseTransition(Duration.seconds(1));
                             pause.setOnFinished(e -> makeMoveWithAI());
                             pause.play();
                         }
@@ -138,40 +137,35 @@ public class TicTacToe extends Application {
 
     public void storeMove(int position, int activePlayer) {
         int row = position / 3, col = position % 3;
+
         rows.set(row, rows.get(row)+activePlayer);
         cols.set(col, cols.get(col)+activePlayer);
+
         if (row == col)
             diagonal += activePlayer;
         if (row + col == 2)
             antidiagonal += activePlayer;
-        total_moves += 1;
 
+        total_moves += 1;
     }
 
     public void removeMove(int position, int activePlayer) {
-        int row = position / 3, col = position % 3;
-        rows.set(row, rows.get(row)-activePlayer);
-        cols.set(col, cols.get(col)-activePlayer);
-        if (row == col)
-            diagonal -= activePlayer;
-        if (row + col == 2)
-            antidiagonal -= activePlayer;
-        total_moves -= 1;
-
+        storeMove(position, -1 * activePlayer);
+        total_moves -= 2;
     }
 
-    public int isWinner(int player) {
+    public boolean isWinner(int player) {
         for (int row : rows)
             if (row * player == rows.size())
-                return 10;
+                return true;
         for (int col : cols)
             if (col * player == cols.size())
-                return 10;
+                return true;
         if (diagonal * player == rows.size() ||
         antidiagonal * player == rows.size())
-            return 10;
+            return true;
         else
-            return 0;
+            return false;
     }
 
     public boolean isBoardFull() {
@@ -181,10 +175,10 @@ public class TicTacToe extends Application {
     public void checkForWinner() {
         if (gameOver)
             return;
-        if (isWinner(USER) > 0 || isWinner(AI) > 0 ) {
+        if (isWinner(USER) || isWinner(AI) ) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Game Over");
-            int winner = isWinner(USER) > 0 ? USER:AI;
+            int winner = isWinner(USER) ? USER:AI;
             alert.setContentText("Player " + players.get(winner) + " won");
             alert.show();
             gameOver = true;
@@ -232,8 +226,8 @@ public class TicTacToe extends Application {
     }
 
     public int minimaxWithAlphaBeta(int depth, int player, int alpha, int beta) {
-        if (isWinner(USER) > 0) return isWinner(USER) + depth;
-        if (isWinner(AI) > 0) return isWinner(AI) * -1 - depth;
+        if (isWinner(USER)) return 20 ;
+        if (isWinner(AI)) return -20;
         if (isBoardFull()) return 0;
 
         if (player == USER) {
