@@ -34,3 +34,38 @@ To run the Tic Tac Toe JavaFX project locally, follow these steps:
 - Click on a cell to make a move. Wait for the AI to make its move.
 - The game will continue until a player wins, the game ends in a draw, or the player decides to restart the game.
 - Use the "Restart" button to start a new game after the current game is over.
+
+## Static Model
+
+ _________________________         
+|         TicTacToe       |       
+|-------------------------|       
+| - gridPane: GridPane    |       
+| - borderPane: BorderPane|       
+| - title: Label          |        
+| - btns: Button[]        |      
+| - restartButton: Button |        
+| - gameOver: boolean     |
+| - AI: int               |
+| - USER: int             |
+| - players: HashMap      |
+| - gameStates: int[]     |
+| - font: Font            |
+| - rows: List<Integer>   |
+| - cols: List<Integer>   |
+| - diagonal: int         |
+| - antidiagonal: int     |
+| - total_moves: int      |
+|-------------------------|
+| + main(String[]): void  |
+| + start(Stage): void    |
+| + createGUI(): void     |
+| + handleEvent(): void   |
+| + storeMove(int, int): void |
+| + removeMove(int, int): void|
+| + isWinner(int): boolean|
+| + isBoardFull(): boolean|
+| + checkForWinner(): void|
+| + makeMoveWithAI(): void|
+| + minimaxWithAlphaBeta(int, int, int, int): int |
+|_________________________|
