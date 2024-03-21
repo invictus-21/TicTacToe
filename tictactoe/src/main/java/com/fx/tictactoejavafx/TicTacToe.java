@@ -22,14 +22,15 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-
-
 public class TicTacToe extends Application {
+    // UI components
     private final GridPane gridPane = new GridPane();
     private final BorderPane borderPane = new BorderPane();
     private final Label title = new Label("Tic Tac Toe");
     private final Button[] btns = new Button[9];
     private final Button restartButton = new Button("Restart");
+    
+    // Game state variables
     private boolean gameOver = false;
     private final int AI = -1;
     private final int USER = 1;
@@ -49,7 +50,7 @@ public class TicTacToe extends Application {
         launch(args);
     }
 
-
+    // Method to initialize the UI
     @Override
     public void start(Stage stage) {
         this.createGUI();
@@ -135,17 +136,24 @@ public class TicTacToe extends Application {
         }
     }
 
+    // Records the move made by a player on the game board.
     public void storeMove(int position, int activePlayer) {
+        // Calculate the row and column indices based on the position.
         int row = position / 3, col = position % 3;
 
-        rows.set(row, rows.get(row)+activePlayer);
-        cols.set(col, cols.get(col)+activePlayer);
+        // Update the sums of the corresponding row and column with the value of the active player.
+        rows.set(row, rows.get(row) + activePlayer);
+        cols.set(col, cols.get(col) + activePlayer);
 
+        // Update the sum of the main diagonal if the move is on it.
         if (row == col)
             diagonal += activePlayer;
+
+        // Update the sum of the antidiagonal if the move is on it.
         if (row + col == 2)
             antidiagonal += activePlayer;
 
+        // Increment the total moves count.
         total_moves += 1;
     }
 
@@ -194,74 +202,84 @@ public class TicTacToe extends Application {
         }
     }
 
+    // Method to make a move for the AI player
     public void makeMoveWithAI() {
-        int bestMove = -1;
-        int bestScore = Integer.MAX_VALUE;
-        int alpha = Integer.MIN_VALUE;
-        int beta = Integer.MAX_VALUE;
+        int bestMove = -1; // Initialize the best move index
+        int bestScore = Integer.MAX_VALUE; // Initialize the best score to the highest possible value
+        int alpha = Integer.MIN_VALUE; // Initialize alpha to the lowest possible value
+        int beta = Integer.MAX_VALUE; // Initialize beta to the highest possible value
 
+        // Loop through all possible moves
         for (int i = 0; i < 9; i++) {
-            if (gameStates[i] == 0) {
-                gameStates[i] = AI;
-                storeMove(i, AI);
-                int score = minimaxWithAlphaBeta(0, USER, alpha, beta);
-                removeMove(i, AI);
-                gameStates[i] = 0;
+            if (gameStates[i] == 0) { // If the current move is valid
+                gameStates[i] = AI; // Set the current move for the AI player
+                storeMove(i, AI); // Store the current move
+                int score = minimaxWithAlphaBeta(0, USER, alpha, beta); // Calculate the score using minimax with alpha-beta pruning
+                removeMove(i, AI); // Remove the current move
+                gameStates[i] = 0; // Reset the current move
 
+                // Update the best move if the current move has a better score
                 if (score < bestScore) {
-                    bestScore = score;
-                    bestMove = i;
+                    bestScore = score; // Update the best score
+                    bestMove = i; // Update the best move index
                 }
             }
         }
 
+        // Make the best move found by the AI
         if (bestMove != -1) {
             btns[bestMove].setGraphic(new ImageView(
                     new Image("file:src/main/resources/assets/cross.png", 100, 100, false, false)
             ));
-            gameStates[bestMove] = AI;
-            storeMove(bestMove, AI);
-            checkForWinner();
+            gameStates[bestMove] = AI; // Set the game state for the best move to AI
+            storeMove(bestMove, AI); // Store the best move
+            checkForWinner(); // Check if the AI has won
         }
     }
 
+    // Method to perform the minimax algorithm with alpha-beta pruning
     public int minimaxWithAlphaBeta(int depth, int player, int alpha, int beta) {
-        if (isWinner(USER)) return 20 ;
-        if (isWinner(AI)) return -20;
+        // Check if the user has won
+        if (isWinner(USER)) return 10 - depth;
+        // Check if the AI has won
+        if (isWinner(AI)) return depth - 10;
+        // Check if the board is full (draw)
         if (isBoardFull()) return 0;
 
-        if (player == USER) {
-            int bestScore = Integer.MIN_VALUE;
+        if (player == USER) { // If it's the user's turn
+            int bestScore = Integer.MIN_VALUE; // Initialize the best score to the lowest possible value
+            // Loop through all possible moves
             for (int i = 0; i < 9; i++) {
-                if (gameStates[i] == 0) {
-                    gameStates[i] = USER;
-                    storeMove(i, USER);
-                    int score = minimaxWithAlphaBeta(depth + 1, AI, alpha, beta);
-                    removeMove(i, USER);
-                    gameStates[i] = 0;
-                    bestScore = Math.max(score, bestScore);
-                    alpha = Math.max(alpha, bestScore);
-                    if (alpha >= beta)
-                        break;
+                if (gameStates[i] == 0) { // If the current move is valid
+                    gameStates[i] = USER; // Set the current move for the user
+                    storeMove(i, USER); // Store the current move
+                    int score = minimaxWithAlphaBeta(depth + 1, AI, alpha, beta); // Recursively calculate the score for the next move by the AI
+                    removeMove(i, USER); // Remove the current move
+                    gameStates[i] = 0; // Reset the current move
+                    bestScore = Math.max(score, bestScore); // Update the best score
+                    alpha = Math.max(alpha, bestScore); // Update alpha with the maximum of itself and the best score
+                    if (alpha >= beta) // Check if pruning is possible
+                        break; // Exit the loop if pruning condition is met
                 }
             }
-            return bestScore;
-        } else {
-            int bestScore = Integer.MAX_VALUE;
+            return bestScore; // Return the best score
+        } else { // If it's the AI's turn
+            int bestScore = Integer.MAX_VALUE; // Initialize the best score to the highest possible value
+            // Loop through all possible moves
             for (int i = 0; i < 9; i++) {
-                if (gameStates[i] == 0) {
-                    gameStates[i] = AI;
-                    storeMove(i, AI);
-                    int score = minimaxWithAlphaBeta(depth + 1, USER, alpha, beta);
-                    removeMove(i, AI);
-                    gameStates[i] = 0;
-                    bestScore = Math.min(score, bestScore);
-                    beta = Math.min(beta, bestScore);
-                    if (beta <= alpha)
-                        break;
+                if (gameStates[i] == 0) { // If the current move is valid
+                    gameStates[i] = AI; // Set the current move for the AI
+                    storeMove(i, AI); // Store the current move
+                    int score = minimaxWithAlphaBeta(depth + 1, USER, alpha, beta); // Recursively calculate the score for the next move by the user
+                    removeMove(i, AI); // Remove the current move
+                    gameStates[i] = 0; // Reset the current move
+                    bestScore = Math.min(score, bestScore); // Update the best score
+                    beta = Math.min(beta, bestScore); // Update beta with the minimum of itself and the best score
+                    if (beta <= alpha) // Check if pruning is possible
+                        break; // Exit the loop if pruning condition is met
                 }
             }
-            return bestScore;
+            return bestScore; // Return the best score
         }
-    }
+    }    
 }
